@@ -1,0 +1,77 @@
+name: Release Binaries (Extra Architectures)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag/version to release (e.g., v0.0.0-ALPHA or v0.1.0)'
+        required: true
+        default: 'v0.0.0-ALPHA'
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
+
+jobs:
+  build-linux-aarch64:
+    name: Linux aarch64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install cross toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+      - name: Build (release)
+        run: cargo build --bin dxany --release --target aarch64-unknown-linux-gnu
+      - name: Package tar.gz
+        run: |
+          ASSET="dxany-linux-aarch64.tar.gz"
+          tar -C target/aarch64-unknown-linux-gnu/release -czf "$ASSET" dxany
+          echo "asset=$ASSET" >> $GITHUB_ENV
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.asset }}
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows-aarch64:
+    name: Windows aarch64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Add aarch64 target
+        run: rustup target add aarch64-pc-windows-msvc
+      - name: Build (release)
+        run: cargo build --bin dxany --release --target aarch64-pc-windows-msvc
+      - name: Prepare asset
+        shell: pwsh
+        run: |
+          Copy-Item -Path "target/aarch64-pc-windows-msvc/release/dxany.exe" -Destination "dxany-windows-aarch64.exe"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dxany-windows-aarch64.exe
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

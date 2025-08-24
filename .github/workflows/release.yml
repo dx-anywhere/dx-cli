@@ -1,0 +1,122 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag/version to release (e.g., v0.0.0-ALPHA or v0.1.0)'
+        required: true
+        default: 'v0.0.0-ALPHA'
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || github.ref_name }}
+
+jobs:
+  build-linux-x86_64:
+    name: Linux x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build (release)
+        run: cargo build --bin dxany --release
+      - name: Package tar.gz
+        run: |
+          ASSET="dxany-linux-x86_64.tar.gz"
+          tar -C target/release -czf "$ASSET" dxany
+          echo "asset=$ASSET" >> $GITHUB_ENV
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.asset }}
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows-x86_64:
+    name: Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build (release)
+        run: cargo build --bin dxany --release
+      - name: Prepare asset
+        shell: pwsh
+        run: |
+          Copy-Item -Path "target/release/dxany.exe" -Destination "dxany-windows-x86_64.exe"
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dxany-windows-x86_64.exe
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos-x86_64:
+    name: macOS x86_64
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build (release)
+        run: cargo build --bin dxany --release
+      - name: Package tar.gz
+        run: |
+          ASSET="dxany-macos-x86_64.tar.gz"
+          tar -C target/release -czf "$ASSET" dxany
+          echo "asset=$ASSET" >> $GITHUB_ENV
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.asset }}
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos-aarch64:
+    name: macOS aarch64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Build (release)
+        run: cargo build --bin dxany --release
+      - name: Package tar.gz
+        run: |
+          ASSET="dxany-macos-aarch64.tar.gz"
+          tar -C target/release -czf "$ASSET" dxany
+          echo "asset=$ASSET" >> $GITHUB_ENV
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.asset }}
+          prerelease: true
+          tag_name: ${{ env.RELEASE_TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

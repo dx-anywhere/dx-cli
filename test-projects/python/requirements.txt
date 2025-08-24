@@ -1,0 +1,20 @@
+# Web Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# PostgreSQL
+psycopg2-binary==2.9.7
+SQLAlchemy==2.0.20
+
+# Redis
+redis==4.6.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Utilities
+requests==2.31.0
+pydantic==2.3.0
+
+# Testing
+pytest==7.4.0

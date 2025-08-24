@@ -1,0 +1,14 @@
+[package]
+name = "dx-cli"
+version = "0.0.0-ALPHA"
+edition = "2024"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+default-run = "dx"
+
+[[bin]]
+name = "dx"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
