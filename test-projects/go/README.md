@@ -7,4 +7,4 @@
 
 Projeto de exemplo em Go para validação de detecção (MongoDB, Kafka).
 
-Execute `dx-cli dev-badges` para inserir badges automaticamente.
+Use `dx-cli dev-badges` para atualizar as badges automaticamente.

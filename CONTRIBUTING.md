@@ -27,7 +27,7 @@ Obrigado por considerar contribuir! Este projeto tem foco em DX e colaboração 
 - Mantemos o main simples; lógica complexa pode ir para `src/lib.rs` no futuro para facilitar testes.
 
 ## Formas de contribuir
-- Correções de bugs, melhorias de DX, documentação e testes.
+- Correções de bugs, melhorias de DX, documentação e traduções.
 - Issues: reporte bugs, proponha features, compartilhe casos de uso.
 - PRs pequenos e focados são mais fáceis de revisar.
 
@@ -43,6 +43,7 @@ Obrigado por considerar contribuir! Este projeto tem foco em DX e colaboração 
   - `sudo apt-get update && sudo apt-get install -y build-essential pkg-config libssl-dev`.
   - Instale Rust via rustup (`curl https://sh.rustup.rs -sSf | sh`).
 - Alternativa (Windows): GNU toolchain com MinGW-w64 (menos recomendado no Windows).
+- Verifique a instalação com `rustc --version`.
 
 Comandos úteis do rustup (todas as plataformas):
 ```sh

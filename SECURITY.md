@@ -24,6 +24,7 @@ Obrigado por ajudar a manter o ecossistema seguro. Este documento descreve como 
 - Preferencial: GitHub Security Advisory (aba "Security" do repositório) para enviar um relatório privado.
 - Se indisponível: abra uma Issue sucinta solicitando canal privado. Não publique detalhes técnicos nem PoCs.
 - Evite abrir Pull Requests públicos com correções antes de coordenação privada.
+- Para perguntas gerais sem detalhes sensíveis, utilize issues públicas.
 
 ## Conteúdo mínimo do relatório
 - Descrição clara do problema e impacto potencial.
