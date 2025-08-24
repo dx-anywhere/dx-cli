@@ -42,7 +42,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     // Header with identity and quick badges
     report.push_str("# dx-cli _analyzer_\n\n");
     report.push_str(&format!("Projeto: {}\n\n", project_dir.display()));
-    report.push_str("[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#) ");
+    report.push_str("[![dx-anywhere](https://raw.githubusercontent.com/dx-anywhere/.github/main/assets/dx-anywhere-logo.png)](#) ");
     report.push_str("[![Report](https://img.shields.io/badge/Report-Markdown-informational)](#) ");
     report.push_str("[![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-green)](#)\n\n");
 
@@ -85,7 +85,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
         report.push_str("| Serviço | Imagem | Portas | Volumes | Credenciais/Info |\n");
         report.push_str("|--------|--------|--------|---------|------------------|\n");
         let mut entries: Vec<_> = ds_config.services.iter().collect();
-        entries.sort_by(|a,b| a.0.cmp(b.0));
+        entries.sort_by(|a, b| a.0.cmp(b.0));
         for (name, svc) in entries {
             let ports_md = if svc.ports.is_empty() {
                 "-".to_string()
@@ -96,10 +96,17 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
                     .collect::<Vec<_>>()
                     .join(", ")
             };
-            let vols = if svc.volumes.is_empty() { "-".to_string() } else { svc.volumes.len().to_string() };
+            let vols = if svc.volumes.is_empty() {
+                "-".to_string()
+            } else {
+                svc.volumes.len().to_string()
+            };
             let info = service_info(name, svc);
             let image_link = linkify_image(&svc.image);
-            report.push_str(&format!("| {} | {} | {} | {} | {} |\n", name, image_link, ports_md, vols, info));
+            report.push_str(&format!(
+                "| {} | {} | {} | {} | {} |\n",
+                name, image_link, ports_md, vols, info
+            ));
         }
 
         // Proposed YAML (collapsible)
@@ -124,20 +131,36 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     for k in &keys {
         let kl = k.to_lowercase();
         match kl.as_str() {
-            "postgres" => { badges.insert("[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)"); },
-            "mysql" => { badges.insert("[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)"); },
-            "redis" => { badges.insert("[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)"); },
-            "mongodb" => { badges.insert("[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)"); },
-            "kafka" => { badges.insert("[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)"); },
-            "kafka-ui" => { /* skip explicit UI badge */ },
-            "jobmanager" | "taskmanager" => { badges.insert("[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)"); },
+            "postgres" => {
+                badges.insert("[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)");
+            }
+            "mysql" => {
+                badges.insert(
+                    "[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)",
+                );
+            }
+            "redis" => {
+                badges.insert(
+                    "[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)",
+                );
+            }
+            "mongodb" => {
+                badges.insert("[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)");
+            }
+            "kafka" => {
+                badges.insert("[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)");
+            }
+            "kafka-ui" => { /* skip explicit UI badge */ }
+            "jobmanager" | "taskmanager" => {
+                badges.insert("[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)");
+            }
             _ => {}
         }
     }
     let mut badge_lines: Vec<&str> = badges.into_iter().collect();
     badge_lines.sort();
     // Always append the dx-cli badge at the end
-    let dx_anywhere_badge = "[![dx-cli](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#)";
+    let dx_anywhere_badge = "[![dx-anywhere](https://raw.githubusercontent.com/dx-anywhere/.github/main/assets/dx-anywhere-logo.png)](#)";
     let rendered_line = if badge_lines.is_empty() {
         dx_anywhere_badge.to_string()
     } else {
@@ -191,38 +214,49 @@ fn service_info(name: &str, svc: &DockerService) -> String {
             let user = env("POSTGRES_USER").unwrap_or_else(|| "postgres".to_string());
             let pass = env("POSTGRES_PASSWORD").unwrap_or_else(|| "example".to_string());
             let db = env("POSTGRES_DB").unwrap_or_else(|| "app".to_string());
-            format!("user: {}, pass: {}, db: {}, url: postgres://{}:{}@localhost:5432/{}", user, pass, db, user, pass, db)
+            format!(
+                "user: {}, pass: {}, db: {}, url: postgres://{}:{}@localhost:5432/{}",
+                user, pass, db, user, pass, db
+            )
         }
         "mysql" | "mariadb" => {
             let user = "root".to_string();
-            let pass = env("MARIADB_ROOT_PASSWORD").or_else(|| env("MYSQL_ROOT_PASSWORD")).unwrap_or_else(|| "example".to_string());
-            let db = env("MARIADB_DATABASE").or_else(|| env("MYSQL_DATABASE")).unwrap_or_else(|| "app".to_string());
-            format!("user: {}, pass: {}, db: {}, url: mysql://{}:{}@localhost:3306/{}", user, pass, db, user, pass, db)
+            let pass = env("MARIADB_ROOT_PASSWORD")
+                .or_else(|| env("MYSQL_ROOT_PASSWORD"))
+                .unwrap_or_else(|| "example".to_string());
+            let db = env("MARIADB_DATABASE")
+                .or_else(|| env("MYSQL_DATABASE"))
+                .unwrap_or_else(|| "app".to_string());
+            format!(
+                "user: {}, pass: {}, db: {}, url: mysql://{}:{}@localhost:3306/{}",
+                user, pass, db, user, pass, db
+            )
         }
         "mongodb" => {
             let user = env("MONGO_INITDB_ROOT_USERNAME").unwrap_or_else(|| "root".to_string());
             let pass = env("MONGO_INITDB_ROOT_PASSWORD").unwrap_or_else(|| "example".to_string());
-            format!("user: {}, pass: {}, url: mongodb://{}:{}@localhost:27017", user, pass, user, pass)
+            format!(
+                "user: {}, pass: {}, url: mongodb://{}:{}@localhost:27017",
+                user, pass, user, pass
+            )
         }
         "redis" => {
             // If REDIS_PASSWORD present, report it, otherwise default: no auth
-            if let Some(p) = env("REDIS_PASSWORD") { format!("senha: {} (requirepass habilitado)", p) } else { "sem senha (default)".to_string() }
+            if let Some(p) = env("REDIS_PASSWORD") {
+                format!("senha: {} (requirepass habilitado)", p)
+            } else {
+                "sem senha (default)".to_string()
+            }
         }
         // Messaging / Streaming
         "kafka" => {
             // Redpanda default advertised host 29092
             "Bootstrap: localhost:29092".to_string()
         }
-        "kafka-ui" => {
-            "UI: http://localhost:9093".to_string()
-        }
+        "kafka-ui" => "UI: http://localhost:9093".to_string(),
         // Flink
-        "jobmanager" => {
-            "Flink UI: http://localhost:8081".to_string()
-        }
-        "taskmanager" => {
-            "Seguido pelo JobManager (sem UI)".to_string()
-        }
+        "jobmanager" => "Flink UI: http://localhost:8081".to_string(),
+        "taskmanager" => "Seguido pelo JobManager (sem UI)".to_string(),
         // Observability stack
         "grafana" => {
             let anon = svc
@@ -236,18 +270,10 @@ fn service_info(name: &str, svc: &DockerService) -> String {
                 "credenciais padrão configuráveis".to_string()
             }
         }
-        "prometheus" => {
-            "scrape: otel-collector:8889".to_string()
-        }
-        "loki" => {
-            "push: http://localhost:3100/loki/api/v1/push".to_string()
-        }
-        "tempo" => {
-            "OTLP gRPC: 4317, HTTP: 4318".to_string()
-        }
-        "otel-collector" => {
-            "OTLP HTTP: 4318 | gRPC: 4317 | Prom (metrics): 8889".to_string()
-        }
+        "prometheus" => "scrape: otel-collector:8889".to_string(),
+        "loki" => "push: http://localhost:3100/loki/api/v1/push".to_string(),
+        "tempo" => "OTLP gRPC: 4317, HTTP: 4318".to_string(),
+        "otel-collector" => "OTLP HTTP: 4318 | gRPC: 4317 | Prom (metrics): 8889".to_string(),
         _ => "-".to_string(),
     }
 }
