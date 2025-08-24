@@ -1,7 +1,9 @@
 # PHP Sample Project
 <!-- dx-cli:badges:start -->
-[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#) [![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#) [![dx-cli](https://img.shields.io/badge/dx--anywhere-CLI-blueviolet)](#)
+[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#) [![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#) [![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#)
 <!-- dx-cli:badges:end -->
+
+
 
 
 

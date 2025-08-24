@@ -38,7 +38,7 @@ pub fn generate_badges_markdown(services: &[String]) -> String {
     badge_lines.sort();
 
     // Always append the dx-cli badge at the end
-    let dx_anywhere_badge = "[![dx-cli](https://img.shields.io/badge/dx--anywhere-CLI-blueviolet)](#)";
+    let dx_anywhere_badge = "[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#)";
     if badge_lines.is_empty() {
         dx_anywhere_badge.to_string()
     } else {

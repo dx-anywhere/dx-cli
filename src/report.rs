@@ -42,7 +42,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     // Header with identity and quick badges
     report.push_str("# dx-cli _analyzer_\n\n");
     report.push_str(&format!("Projeto: {}\n\n", project_dir.display()));
-    report.push_str("[![dx-cli](https://img.shields.io/badge/dx--anywhere-CLI-blueviolet)](#) ");
+    report.push_str("[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#) ");
     report.push_str("[![Report](https://img.shields.io/badge/Report-Markdown-informational)](#) ");
     report.push_str("[![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-green)](#)\n\n");
 
@@ -137,7 +137,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     let mut badge_lines: Vec<&str> = badges.into_iter().collect();
     badge_lines.sort();
     // Always append the dx-cli badge at the end
-    let dx_anywhere_badge = "[![dx-cli](https://img.shields.io/badge/dx--anywhere-CLI-blueviolet)](#)";
+    let dx_anywhere_badge = "[![dx-cli](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#)";
     let rendered_line = if badge_lines.is_empty() {
         dx_anywhere_badge.to_string()
     } else {

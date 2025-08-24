@@ -378,14 +378,14 @@ Notas de desempenho (padrões locais):
 Abaixo você vê as badges renderizadas. Em seguida, há um bloco colapsável com o Markdown para copiar
 e colar entre os marcadores no seu README.md.
 
-[![dx-cli](https://img.shields.io/badge/dx--cli-CLI-blueviolet)](#)
+[![dx-anywhere](https://img.shields.io/badge/dx--cli-CLI-1ED6FF)](#)
 
 <details>
 <summary>Mostrar bloco de badges (Markdown)</summary>
 
 ```md
 <!-- dx-cli:badges:start -->
-[![dx-cli](https://img.shields.io/badge/dx--cli-CLI-blueviolet)](#)
+[![dx-anywhere](https://img.shields.io/badge/dx--cli-CLI-1ED6FF)](#)
 <!-- dx-cli:badges:end -->
 ```
 
