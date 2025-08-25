@@ -2,4 +2,4 @@
 
 Este é um projeto de exemplo para validar a detecção de dependências (Flink, Kafka, Postgres, etc.).
 
-Use `dx-cli dev-badges` para inserir badges automaticamente aqui.
+Use `dx-cli dev-badges` para atualizar as badges automaticamente.

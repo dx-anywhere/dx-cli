@@ -202,3 +202,36 @@ postgres = "0.19"
     // Clean up test directory
     let _ = fs::remove_dir_all(&test_dir);
 }
+
+// Test that the stop subcommand references the correct CLI name when compose file is missing
+#[test]
+fn dev_services_stop_shows_dx_cli_name() {
+    // Create a temporary directory without a .dx/docker-compose.yml
+    let temp_dir = env::temp_dir().join("dx-cli-stop-test");
+    let _ = fs::remove_dir_all(&temp_dir);
+    fs::create_dir_all(&temp_dir).expect("Failed to create temp dir");
+
+    let exe = env!("CARGO_BIN_EXE_dx");
+    let output = Command::new(exe)
+        .arg("dev-services")
+        .arg("stop")
+        .arg(temp_dir.to_string_lossy().to_string())
+        .output()
+        .expect("failed to run dx-cli dev-services stop");
+
+    assert!(output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("dx dev-services"),
+        "stderr should mention 'dx dev-services': {}",
+        stderr
+    );
+    assert!(
+        !stderr.contains("dxany"),
+        "stderr contains outdated CLI name: {}",
+        stderr
+    );
+
+    // Clean up
+    let _ = fs::remove_dir_all(&temp_dir);
+}

@@ -1,6 +1,7 @@
 # Código de Conduta do dx-cli
 
 Este projeto adota o [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) como base. Queremos um ambiente aberto, acolhedor e profissional.
+Questões gerais sobre o Código de Conduta podem ser tratadas nas issues.
 
 > EN: This Code of Conduct is primarily in Portuguese. See the original Contributor Covenant for an English reference; contributions to a full EN version here are welcome.
 
@@ -27,6 +28,7 @@ Este projeto adota o [Contributor Covenant v2.1](https://www.contributor-covenan
 ## Como reportar
 - Para assuntos sensíveis, utilize o processo descrito em [SECURITY.md](SECURITY.md) (GitHub Security Advisories ou canal privado). Evite expor dados sensíveis em issues públicas.
 - Descreva o ocorrido de forma objetiva (datas, links, contexto) sem divulgar informações pessoais desnecessárias.
+- Para dúvidas ou esclarecimentos, abra uma issue.
 
 ## Aplicação
 - A manutenção do projeto avaliará incidentes de boa-fé e poderá tomar ações que vão de orientação a restrições temporárias ou permanentes de participação.

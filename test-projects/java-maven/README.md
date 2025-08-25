@@ -2,4 +2,4 @@
 
 Projeto de exemplo em Java (Maven) para validação de detecção (Postgres, Kafka).
 
-Rode `dx-cli dev-badges` para inserir os badges.
+Use `dx-cli dev-badges` para atualizar as badges automaticamente.
