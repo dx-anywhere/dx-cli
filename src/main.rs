@@ -390,7 +390,7 @@ fn cmd_dev_services_stop(dir: Option<std::path::PathBuf>) {
 
     if !compose_path.exists() {
         eprintln!(
-            "Arquivo não encontrado: {}\nDica: gere o manifesto com:\n  dxany dev-services\nOu especifique o diretório correto com:\n  dxany dev-services stop <dir>",
+            "Arquivo não encontrado: {}\nDica: gere o manifesto com:\n  dx dev-services\nOu especifique o diretório correto com:\n  dx dev-services stop <dir>",
             compose_path.display()
         );
         return;
@@ -423,7 +423,7 @@ fn cmd_dev_services_stop(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v2() {
         Ok(status) if status.success() => {
-            println!("Serviços parados com Docker Compose (V2). Para iniciar novamente: 'dxany dev-services run'.");
+            println!("Serviços parados com Docker Compose (V2). Para iniciar novamente: 'dx dev-services run'.");
             return;
         }
         Ok(_status) => {
@@ -436,7 +436,7 @@ fn cmd_dev_services_stop(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v1() {
         Ok(status) if status.success() => {
-            println!("Serviços parados com docker-compose. Para iniciar novamente: 'dxany dev-services run'.");
+            println!("Serviços parados com docker-compose. Para iniciar novamente: 'dx dev-services run'.");
         }
         Ok(_status) => {
             eprintln!("Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução.");

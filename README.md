@@ -52,6 +52,12 @@ deploy.
 - [Agradecimentos](#agradecimentos)
 - [English Summary](#english-summary)
 
+## Visão geral
+
+O **dx-cli** é uma CLI em Rust focada em aprimorar a experiência de desenvolvimento em qualquer stack.
+Ele detecta dependências de serviços, gera manifestos de Dev Services e oferece subcomandos para
+portal, testes, configuração, governança e telemetria.
+
 ## Mudanças Recentes
 
 - Kafka UI: porta padrão alterada para 9093 (antes 8080). O compose expõe 9093 e a aplicação define SERVER_PORT=9093 por padrão.
