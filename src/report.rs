@@ -42,7 +42,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     // Header with identity and quick badges
     report.push_str("# dx-cli _analyzer_\n\n");
     report.push_str(&format!("Projeto: {}\n\n", project_dir.display()));
-    report.push_str("[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#) ");
+    report.push_str("[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF?logo=data:image/svg+xml;base64,aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2R4LWFueXdoZXJlL2R4LWNsaS9yZWZzL2hlYWRzL21haW4vaW1hZ2VzL2R4LWxvZ28uc3Zn)](#) ");
     report.push_str("[![Report](https://img.shields.io/badge/Report-Markdown-informational)](#) ");
     report.push_str("[![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-green)](#)\n\n");
 
@@ -136,8 +136,8 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     }
     let mut badge_lines: Vec<&str> = badges.into_iter().collect();
     badge_lines.sort();
-    // Always append the dx-cli badge at the end
-    let dx_anywhere_badge = "[![dx-cli](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF)](#)";
+    // Always append the dx-anywhere badge at the end (using repo logo)
+    let dx_anywhere_badge = "[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF?logo=data:image/svg+xml;base64,aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2R4LWFueXdoZXJlL2R4LWNsaS9yZWZzL2hlYWRzL21haW4vaW1hZ2VzL2R4LWxvZ28uc3Zn)](#)";
     let rendered_line = if badge_lines.is_empty() {
         dx_anywhere_badge.to_string()
     } else {
