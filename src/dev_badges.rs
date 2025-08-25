@@ -19,17 +19,33 @@ pub fn generate_badges_markdown(services: &[String]) -> String {
         let kl = s.to_lowercase();
         match kl.as_str() {
             // Databases
-            "postgres" | "postgresql" => { badges.insert("[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)"); },
-            "mysql" | "mariadb" => { badges.insert("[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)"); },
-            "mongodb" => { badges.insert("[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)"); },
+            "postgres" | "postgresql" => {
+                badges.insert("[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)");
+            }
+            "mysql" | "mariadb" => {
+                badges.insert(
+                    "[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)",
+                );
+            }
+            "mongodb" => {
+                badges.insert("[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)");
+            }
             // Cache
-            "redis" => { badges.insert("[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)"); },
+            "redis" => {
+                badges.insert(
+                    "[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)",
+                );
+            }
             // Streaming (Kafka API)
-            "kafka" => { badges.insert("[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)"); },
+            "kafka" => {
+                badges.insert("[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)");
+            }
             // Data processing (Flink detected by jobmanager/taskmanager too)
-            "flink" | "jobmanager" | "taskmanager" => { badges.insert("[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)"); },
+            "flink" | "jobmanager" | "taskmanager" => {
+                badges.insert("[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)");
+            }
             // Skip tools like kafka-ui
-            "kafka-ui" => {},
+            "kafka-ui" => {}
             _ => {}
         }
     }
@@ -38,7 +54,7 @@ pub fn generate_badges_markdown(services: &[String]) -> String {
     badge_lines.sort();
 
     // Always append the dx-anywhere badge at the end (using repo logo)
-    let dx_anywhere_badge = "[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF?logo=data:image/svg+xml;base64,aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2R4LWFueXdoZXJlL2R4LWNsaS9yZWZzL2hlYWRzL21haW4vaW1hZ2VzL2R4LWxvZ28uc3Zn)](#)";
+    let dx_anywhere_badge = "[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF?logo=https://raw.githubusercontent.com/dx-anywhere/dx-cli/HEAD/images/dx-logo.svg)](#)";
     if badge_lines.is_empty() {
         dx_anywhere_badge.to_string()
     } else {
@@ -60,7 +76,9 @@ pub fn upsert_badges_in_readme(project_dir: &Path, badges_line: &str) -> std::io
     if readme_path.exists() {
         let mut content = fs::read_to_string(&readme_path)?;
         // Replace existing block if found
-        if let (Some(start_idx), Some(end_idx)) = (content.find(START_MARKER), content.find(END_MARKER)) {
+        if let (Some(start_idx), Some(end_idx)) =
+            (content.find(START_MARKER), content.find(END_MARKER))
+        {
             let end_idx = end_idx + END_MARKER.len();
             content.replace_range(start_idx..end_idx, &replacement_block);
         } else {
@@ -126,9 +144,7 @@ pub fn process_directory(save_file: bool, project_dir: &Path) {
             ),
         }
     } else {
-        println!(
-            "Execução em modo --no-save. Para salvar badges, execute: dx-cli dev-badges"
-        );
+        println!("Execução em modo --no-save. Para salvar badges, execute: dx-cli dev-badges");
     }
 }
 
@@ -197,10 +213,6 @@ pub fn process_clean_directory(project_dir: &Path) {
                 // nothing removed
             }
         }
-        Err(e) => eprintln!(
-            "Erro ao limpar badges em {}: {}",
-            project_dir.display(),
-            e
-        ),
+        Err(e) => eprintln!("Erro ao limpar badges em {}: {}", project_dir.display(), e),
     }
 }
