@@ -68,8 +68,8 @@ portal, testes, configuração, governança e telemetria.
 
 ## Funcionalidades
 
-- CLI em Rust com subcomandos para: dev-services, portal, tests, config, docs, governance,
-  telemetry.
+- CLI em Rust com subcomandos para: dev-services, dev-test, portal, tests, config, docs,
+  governance, telemetry.
 - Detecção de dependências de serviços comuns (PostgreSQL, Kafka, Redis, MongoDB) e geração de
   manifesto Docker Compose.
 - Suporte a testes de detecção em múltiplas linguagens por meio de projetos de exemplo.
@@ -243,12 +243,14 @@ rustup default stable
 - Analisador (analyzer/doctor): `dx analyzer` (alias: `dx doctor`)
 - Dev Badges (inserir badges detectadas): `dx dev-badges [--no-save] [<dir>]`
 - Dev Badges (limpar badges): `dx dev-badges clean [<dir>]`
+- Dev Test (vigia arquivos e executa testes): `dx dev-test [<dir>]`
 - Limpar pastas .dx recursivamente: `dx clean [<dir>]`
 
 Subcomandos disponíveis:
 
 - dev-services (com ações: run, stop, restart, remove)
 - dev-badges (com ação: clean)
+- dev-test
 - portal
 - tests
 - config
@@ -258,6 +260,13 @@ Subcomandos disponíveis:
 - clean
 
 Execute `dx <subcomando> --help` para ver opções específicas.
+
+### dev-test
+
+O subcomando `dev-test` monitora o diretório do projeto e relança os testes
+unitários sempre que detectar alterações nos arquivos. A stack é identificada
+automaticamente (Rust, Node.js, Python, Go ou Java) para escolher o comando de
+teste apropriado. Use `Ctrl-C` para encerrar o monitoramento.
 
 ## Analyzer (Analisador de Projeto)
 
@@ -484,9 +493,10 @@ concept, testing aids, configuration, docs, governance and telemetry stubs.
 
 - Build (all platforms): `cargo build` (release: `cargo build --release`)
 - Run: `dx --help` or `cargo run -- --help`
-- Subcommands: init; dev-services (actions: run, stop, restart, remove); dev-badges (action: clean); portal; tests; config; docs; governance; analyzer (alias: doctor)
+- Subcommands: init; dev-services (actions: run, stop, restart, remove); dev-badges (action: clean); dev-test; portal; tests; config; docs; governance; analyzer (alias: doctor)
 - Dev Services: scans Cargo.toml and .env to propose services and outputs docker-compose.yml (print
   or save). Then you can: `dx dev-services run|stop|restart|remove`.
+- Continuous tests: `dx dev-test` watches for changes and reruns unit tests (Rust, Node.js, Python, Go or Java).
 
 Contributions are welcome. See CONTRIBUTING.md and CODE_OF_CONDUCT.md. Licensed under MIT or
 Apache-2.0.

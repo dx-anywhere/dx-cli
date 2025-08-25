@@ -17,6 +17,7 @@ fn help_lists_subcommands() {
     // Subcommands (kebab-case by default via clap derive)
     for sub in [
         "dev-services",
+        "dev-test",
         "portal",
         "tests",
         "config",

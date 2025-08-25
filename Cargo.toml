@@ -12,3 +12,4 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+notify = "6"
