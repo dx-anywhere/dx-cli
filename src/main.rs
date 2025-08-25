@@ -39,6 +39,11 @@ enum Commands {
         /// Diretório alvo (padrão: diretório atual). Para `clean`, também pode ser informado após o subcomando.
         dir: Option<std::path::PathBuf>,
     },
+    /// Executa testes unitários continuamente ao detectar mudanças nos arquivos
+    DevTest {
+        /// Diretório raiz do projeto a ser monitorado (opcional; padrão: diretório atual)
+        dir: Option<std::path::PathBuf>,
+    },
     /// Portal/plug-in do desenvolvedor (Dev UI)
     Portal,
     /// Testes contínuos e inteligentes (geração/execução)
@@ -104,6 +109,7 @@ enum DevServicesAction {
 
 
 mod dev_badges;
+mod dev_test;
 
 fn main() {
     let cli = Cli::parse();
@@ -123,6 +129,7 @@ fn main() {
                 None => cmd_dev_badges(!no_save, dir),
             }
         }
+        Commands::DevTest { dir } => dev_test::watch_and_test(dir),
         Commands::Portal => cmd_portal(),
         Commands::Tests => cmd_tests(),
         Commands::Config => cmd_config(),
@@ -571,6 +578,7 @@ fn cmd_portal() {
         "Portal do Dev (stub)\n- Gerir configs, semear dados, publicar eventos, inspecionar logs/telemetria e acionar fluxos comuns.\n- Exemplos orientados por IA: 'publique 500 eventos válidos neste tópico', 'gere massa de dados conforme este schema'."
     );
 }
+
 
 fn cmd_tests() {
     println!(
