@@ -388,7 +388,7 @@ Notas de desempenho (padrões locais):
 Abaixo você vê as badges renderizadas. Em seguida, há um bloco colapsável com o Markdown para copiar
 e colar entre os marcadores no seu README.md.
 
-[![dx-anywhere](https://raw.githubusercontent.com/dx-anywhere/dx-cli/HEAD/images/dx-logo.svg)](#)
+[![dx-anywhere](https://img.shields.io/badge/DX--Anywhere-CLI-1ED6FF?logo=data:image/svg+xml;base64,aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2R4LWFueXdoZXJlL2R4LWNsaS9yZWZzL2hlYWRzL21haW4vaW1hZ2VzL2R4LWxvZ28uc3Zn)](#)
 
 <details>
 <summary>Mostrar bloco de badges (Markdown)</summary>
