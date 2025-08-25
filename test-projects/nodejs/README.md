@@ -6,4 +6,3 @@
 Projeto de exemplo em Node.js para validação de detecção (MongoDB, Redis).
 
 Use `dx-cli dev-badges` para atualizar as badges automaticamente.
-
