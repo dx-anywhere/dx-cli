@@ -44,6 +44,14 @@ enum Commands {
         /// Diretório raiz do projeto a ser monitorado (opcional; padrão: diretório atual)
         dir: Option<std::path::PathBuf>,
     },
+    /// Gerencia configurações do projeto e identifica a stack
+    DevConfig {
+        /// Ação opcional (ex.: `add`). Se omitida, lista configurações.
+        #[command(subcommand)]
+        action: Option<DevConfigAction>,
+        /// Diretório raiz do projeto (opcional; padrão: diretório atual)
+        dir: Option<std::path::PathBuf>,
+    },
     /// Portal/plug-in do desenvolvedor (Dev UI)
     Portal,
     /// Testes contínuos e inteligentes (geração/execução)
@@ -107,8 +115,34 @@ enum DevServicesAction {
     },
 }
 
+#[derive(Subcommand)]
+enum DevConfigAction {
+    /// Lista todas as configurações
+    List,
+    /// Cria nova configuração
+    Add {
+        /// Chave da configuração
+        key: String,
+        /// Valor da configuração
+        value: String,
+    },
+    /// Atualiza configuração existente
+    Update {
+        /// Chave da configuração
+        key: String,
+        /// Novo valor da configuração
+        value: String,
+    },
+    /// Remove uma configuração
+    Delete {
+        /// Chave da configuração
+        key: String,
+    },
+}
+
 
 mod dev_badges;
+mod dev_config;
 mod dev_test;
 
 fn main() {
@@ -130,6 +164,12 @@ fn main() {
             }
         }
         Commands::DevTest { dir } => dev_test::watch_and_test(dir),
+        Commands::DevConfig { action, dir } => match action.unwrap_or(DevConfigAction::List) {
+            DevConfigAction::List => dev_config::list(dir),
+            DevConfigAction::Add { key, value } => dev_config::add(dir, key, value),
+            DevConfigAction::Update { key, value } => dev_config::update(dir, key, value),
+            DevConfigAction::Delete { key } => dev_config::delete(dir, key),
+        },
         Commands::Portal => cmd_portal(),
         Commands::Tests => cmd_tests(),
         Commands::Config => cmd_config(),
