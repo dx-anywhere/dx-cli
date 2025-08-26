@@ -20,6 +20,7 @@ fn help_lists_subcommands() {
         "dev-services",
         "dev-test",
         "dev-config",
+        "dev-dependencies",
         "portal",
         "tests",
         "config",
