@@ -7,13 +7,22 @@ use std::process::Command;
 fn analyzer_adds_dx_to_gitignore_when_missing() {
     // Prepare an isolated temp project directory
     let tmp = env::temp_dir();
-    let test_dir = tmp.join(format!("dx-cli-analyzer-gitignore-{}",
-        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis()));
+    let test_dir = tmp.join(format!(
+        "dx-cli-analyzer-gitignore-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    ));
     let _ = fs::remove_dir_all(&test_dir);
     fs::create_dir_all(&test_dir).expect("failed to create test_dir");
 
     // Add a marker file to look like a project root
-    fs::write(test_dir.join("Cargo.toml"), "[package]\nname='demo'\nversion='0.1.0'\n").unwrap();
+    fs::write(
+        test_dir.join("Cargo.toml"),
+        "[package]\nname='demo'\nversion='0.1.0'\n",
+    )
+    .unwrap();
 
     // Ensure there is no .gitignore initially
     assert!(!test_dir.join(".gitignore").exists());
@@ -31,7 +40,11 @@ fn analyzer_adds_dx_to_gitignore_when_missing() {
     // .gitignore should be created with .dx entry
     let gi_path = test_dir.join(".gitignore");
     let content = fs::read_to_string(&gi_path).expect(".gitignore should exist");
-    assert!(content.lines().any(|l| l.trim() == ".dx"), ".gitignore missing .dx entry; content was: {}", content);
+    assert!(
+        content.lines().any(|l| l.trim() == ".dx"),
+        ".gitignore missing .dx entry; content was: {}",
+        content
+    );
 
     let _ = fs::remove_dir_all(&test_dir);
 }
@@ -40,13 +53,22 @@ fn analyzer_adds_dx_to_gitignore_when_missing() {
 fn analyzer_does_not_duplicate_dx_entry() {
     // Prepare an isolated temp project directory
     let tmp = env::temp_dir();
-    let test_dir = tmp.join(format!("dx-cli-analyzer-gitignore-dupe-{}",
-        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis()));
+    let test_dir = tmp.join(format!(
+        "dx-cli-analyzer-gitignore-dupe-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    ));
     let _ = fs::remove_dir_all(&test_dir);
     fs::create_dir_all(&test_dir).expect("failed to create test_dir");
 
     // Marker for project root
-    fs::write(test_dir.join("Cargo.toml"), "[package]\nname='demo'\nversion='0.1.0'\n").unwrap();
+    fs::write(
+        test_dir.join("Cargo.toml"),
+        "[package]\nname='demo'\nversion='0.1.0'\n",
+    )
+    .unwrap();
 
     // Pre-create .gitignore without trailing newline to check newline handling
     let mut f = fs::File::create(test_dir.join(".gitignore")).unwrap();
@@ -65,7 +87,11 @@ fn analyzer_does_not_duplicate_dx_entry() {
     // Verify single .dx line exists
     let content = fs::read_to_string(test_dir.join(".gitignore")).unwrap();
     let dx_count = content.lines().filter(|l| l.trim() == ".dx").count();
-    assert_eq!(dx_count, 1, "expected exactly one .dx entry, got {} in: {}", dx_count, content);
+    assert_eq!(
+        dx_count, 1,
+        "expected exactly one .dx entry, got {} in: {}",
+        dx_count, content
+    );
 
     let _ = fs::remove_dir_all(&test_dir);
 }

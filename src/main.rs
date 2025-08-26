@@ -171,30 +171,33 @@ enum DevDependenciesAction {
     },
 }
 
-
 mod dev_badges;
 mod dev_config;
-mod dev_test;
 mod dev_dependencies;
+mod dev_test;
 
 fn main() {
     let cli = Cli::parse();
     match cli.command {
-        Commands::DevServices { action, no_save, dir } => {
-            match action {
-                Some(DevServicesAction::Run { dir: d2 }) => cmd_dev_services_run(d2.or(dir)),
-                Some(DevServicesAction::Stop { dir: d2 }) => cmd_dev_services_stop(d2.or(dir)),
-                Some(DevServicesAction::Restart { dir: d2 }) => cmd_dev_services_restart(d2.or(dir)),
-                Some(DevServicesAction::Remove { dir: d2 }) => cmd_dev_services_remove(d2.or(dir)),
-                None => cmd_dev_services(!no_save, dir),
-            }
-        }
-        Commands::DevBadges { action, no_save, dir } => {
-            match action {
-                Some(DevBadgesAction::Clean { dir: d2 }) => cmd_dev_badges_clean(d2.or(dir)),
-                None => cmd_dev_badges(!no_save, dir),
-            }
-        }
+        Commands::DevServices {
+            action,
+            no_save,
+            dir,
+        } => match action {
+            Some(DevServicesAction::Run { dir: d2 }) => cmd_dev_services_run(d2.or(dir)),
+            Some(DevServicesAction::Stop { dir: d2 }) => cmd_dev_services_stop(d2.or(dir)),
+            Some(DevServicesAction::Restart { dir: d2 }) => cmd_dev_services_restart(d2.or(dir)),
+            Some(DevServicesAction::Remove { dir: d2 }) => cmd_dev_services_remove(d2.or(dir)),
+            None => cmd_dev_services(!no_save, dir),
+        },
+        Commands::DevBadges {
+            action,
+            no_save,
+            dir,
+        } => match action {
+            Some(DevBadgesAction::Clean { dir: d2 }) => cmd_dev_badges_clean(d2.or(dir)),
+            None => cmd_dev_badges(!no_save, dir),
+        },
         Commands::DevTest { dir } => dev_test::watch_and_test(dir),
         Commands::DevConfig { action, dir } => match action.unwrap_or(DevConfigAction::List) {
             DevConfigAction::List => dev_config::list(dir),
@@ -202,12 +205,16 @@ fn main() {
             DevConfigAction::Update { key, value } => dev_config::update(dir, key, value),
             DevConfigAction::Delete { key } => dev_config::delete(dir, key),
         },
-        Commands::DevDependencies { action, dir } => match action.unwrap_or(DevDependenciesAction::List) {
-            DevDependenciesAction::List => dev_dependencies::list(dir),
-            DevDependenciesAction::Add { name, version } => dev_dependencies::add(dir, name, version),
-            DevDependenciesAction::Update { name } => dev_dependencies::update(dir, name),
-            DevDependenciesAction::Delete { name } => dev_dependencies::delete(dir, name),
-        },
+        Commands::DevDependencies { action, dir } => {
+            match action.unwrap_or(DevDependenciesAction::List) {
+                DevDependenciesAction::List => dev_dependencies::list(dir),
+                DevDependenciesAction::Add { name, version } => {
+                    dev_dependencies::add(dir, name, version)
+                }
+                DevDependenciesAction::Update { name } => dev_dependencies::update(dir, name),
+                DevDependenciesAction::Delete { name } => dev_dependencies::delete(dir, name),
+            }
+        }
         Commands::Portal => cmd_portal(),
         Commands::Tests => cmd_tests(),
         Commands::Config => cmd_config(),
@@ -222,10 +229,9 @@ fn main() {
     }
 }
 
-
 mod dev_services;
-mod telemetry;
 mod report;
+mod telemetry;
 
 fn cmd_dev_services(save_file: bool, dir: Option<std::path::PathBuf>) {
     use std::env;
@@ -233,7 +239,8 @@ fn cmd_dev_services(save_file: bool, dir: Option<std::path::PathBuf>) {
     use std::path::{Path, PathBuf};
 
     // Determine target directory (provided or current)
-    let target_dir = dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let target_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
 
     // Helper: process a single project directory
     fn process_project_dir(save_file: bool, project_dir: &Path) {
@@ -255,7 +262,6 @@ fn cmd_dev_services(save_file: bool, dir: Option<std::path::PathBuf>) {
                 return;
             }
         }
-
 
         // Always print the detected dependencies
         println!(
@@ -289,14 +295,21 @@ fn cmd_dev_services(save_file: bool, dir: Option<std::path::PathBuf>) {
                         // Generate analyzer-style report (same as `dx analyzer`)
                         let report_path = project_dir.join(".dx").join("analyzer-report.md");
                         let report = crate::report::build_analyzer_report(project_dir, &res.config);
-                        if let Some(parent) = report_path.parent() { let _ = std::fs::create_dir_all(parent); }
+                        if let Some(parent) = report_path.parent() {
+                            let _ = std::fs::create_dir_all(parent);
+                        }
                         match std::fs::write(&report_path, report) {
-                            Ok(_) => println!("\nRelatório (analyzer) gerado: {}", report_path.display()),
+                            Ok(_) => {
+                                println!("\nRelatório (analyzer) gerado: {}", report_path.display())
+                            }
                             Err(e) => eprintln!("\nErro ao gerar relatório: {}", e),
                         }
                     }
                     Err(e) => {
-                        eprintln!("Erro ao aplicar Telemetry e criar .dx/docker-compose.yml: {}", e);
+                        eprintln!(
+                            "Erro ao aplicar Telemetry e criar .dx/docker-compose.yml: {}",
+                            e
+                        );
                     }
                 }
 
@@ -364,22 +377,24 @@ fn cmd_dev_services_run(dir: Option<std::path::PathBuf>) {
     use std::path::Path;
     use std::process::{Command, Stdio};
 
-    let project_dir = dir
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let project_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
     let compose_path = project_dir.join(".dx").join("docker-compose.yml");
 
     if !compose_path.exists() {
-        eprintln!(
-            "Arquivo não encontrado: {}",
-            compose_path.display()
+        eprintln!("Arquivo não encontrado: {}", compose_path.display());
+        println!(
+            "Gerando manifesto automaticamente (dx dev-services) para: {}",
+            project_dir.display()
         );
-        println!("Gerando manifesto automaticamente (dx dev-services) para: {}", project_dir.display());
         // Tenta gerar o manifesto e incorporar Telemetry no mesmo arquivo
         // equivalente a executar: dx dev-services <dir>
         cmd_dev_services(true, Some(project_dir.clone()));
         // Recheca se foi criado
         if !compose_path.exists() {
-            eprintln!("Falha ao gerar .dx/docker-compose.yml automaticamente. Verifique mensagens acima ou execute 'dx dev-services' manualmente.");
+            eprintln!(
+                "Falha ao gerar .dx/docker-compose.yml automaticamente. Verifique mensagens acima ou execute 'dx dev-services' manualmente."
+            );
             return;
         }
     }
@@ -400,8 +415,13 @@ fn cmd_dev_services_run(dir: Option<std::path::PathBuf>) {
         }
         if changed && fixed != content {
             match std::fs::write(&compose_path, fixed) {
-                Ok(_) => println!("Ajustando caminhos de telemetry no compose (bind mounts ./telemetry)."),
-                Err(e) => eprintln!("Aviso: falha ao auto-corrigir caminhos de telemetry no compose: {}", e),
+                Ok(_) => println!(
+                    "Ajustando caminhos de telemetry no compose (bind mounts ./telemetry)."
+                ),
+                Err(e) => eprintln!(
+                    "Aviso: falha ao auto-corrigir caminhos de telemetry no compose: {}",
+                    e
+                ),
             }
         }
     }
@@ -436,23 +456,34 @@ fn cmd_dev_services_run(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v2() {
         Ok(status) if status.success() => {
-            println!("Serviços iniciados com Docker Compose (V2). Use 'docker compose ps' para ver o status.");
+            println!(
+                "Serviços iniciados com Docker Compose (V2). Use 'docker compose ps' para ver o status."
+            );
             return;
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)...");
+            eprintln!(
+                "Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)..."
+            );
         }
         Err(e) => {
-            eprintln!("Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...", e);
+            eprintln!(
+                "Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...",
+                e
+            );
         }
     }
 
     match try_docker_compose_v1() {
         Ok(status) if status.success() => {
-            println!("Serviços iniciados com docker-compose. Use 'docker-compose ps' para ver o status.");
+            println!(
+                "Serviços iniciados com docker-compose. Use 'docker-compose ps' para ver o status."
+            );
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução.");
+            eprintln!(
+                "Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução."
+            );
         }
         Err(e) => {
             eprintln!("Erro ao tentar executar 'docker-compose': {}", e);
@@ -469,8 +500,8 @@ fn cmd_dev_services_stop(dir: Option<std::path::PathBuf>) {
     use std::path::Path;
     use std::process::{Command, Stdio};
 
-    let project_dir = dir
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let project_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
     let compose_path = project_dir.join(".dx").join("docker-compose.yml");
 
     if !compose_path.exists() {
@@ -508,23 +539,34 @@ fn cmd_dev_services_stop(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v2() {
         Ok(status) if status.success() => {
-            println!("Serviços parados com Docker Compose (V2). Para iniciar novamente: 'dx dev-services run'.");
+            println!(
+                "Serviços parados com Docker Compose (V2). Para iniciar novamente: 'dx dev-services run'."
+            );
             return;
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)...");
+            eprintln!(
+                "Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)..."
+            );
         }
         Err(e) => {
-            eprintln!("Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...", e);
+            eprintln!(
+                "Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...",
+                e
+            );
         }
     }
 
     match try_docker_compose_v1() {
         Ok(status) if status.success() => {
-            println!("Serviços parados com docker-compose. Para iniciar novamente: 'dx dev-services run'.");
+            println!(
+                "Serviços parados com docker-compose. Para iniciar novamente: 'dx dev-services run'."
+            );
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução.");
+            eprintln!(
+                "Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução."
+            );
         }
         Err(e) => {
             eprintln!("Erro ao tentar executar 'docker-compose': {}", e);
@@ -541,7 +583,8 @@ fn cmd_dev_badges(save_file: bool, dir: Option<std::path::PathBuf>) {
     use std::fs;
     use std::path::{Path, PathBuf};
 
-    let target_dir = dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let target_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
 
     // Helper
     fn process_project_dir(save_file: bool, project_dir: &Path) {
@@ -566,11 +609,15 @@ fn cmd_dev_badges(save_file: bool, dir: Option<std::path::PathBuf>) {
                 for entry in entries.flatten() {
                     let path: PathBuf = entry.path();
                     let Ok(ft) = entry.file_type() else { continue };
-                    if ft.is_symlink() { continue; }
+                    if ft.is_symlink() {
+                        continue;
+                    }
                     if ft.is_dir() {
                         // skip hidden
                         if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                            if name.starts_with('.') { continue; }
+                            if name.starts_with('.') {
+                                continue;
+                            }
                         }
                         dirs.push(path);
                     }
@@ -600,7 +647,8 @@ fn cmd_dev_badges_clean(dir: Option<std::path::PathBuf>) {
     use std::fs;
     use std::path::{Path, PathBuf};
 
-    let target_dir = dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let target_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
 
     fn process_project_dir(project_dir: &Path) {
         crate::dev_badges::process_clean_directory(project_dir);
@@ -623,10 +671,14 @@ fn cmd_dev_badges_clean(dir: Option<std::path::PathBuf>) {
                 for entry in entries.flatten() {
                     let path: PathBuf = entry.path();
                     let Ok(ft) = entry.file_type() else { continue };
-                    if ft.is_symlink() { continue; }
+                    if ft.is_symlink() {
+                        continue;
+                    }
                     if ft.is_dir() {
                         if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                            if name.starts_with('.') { continue; }
+                            if name.starts_with('.') {
+                                continue;
+                            }
                         }
                         dirs.push(path);
                     }
@@ -657,7 +709,6 @@ fn cmd_portal() {
     );
 }
 
-
 fn cmd_tests() {
     println!(
         "Testes Contínuos & Inteligentes (stub)\n- Geração/expansão de testes por IA (unit, contrato, property-based).\n- Fixtures realistas automáticos, priorização de falhas e explicabilidade no portal."
@@ -681,9 +732,6 @@ fn cmd_governance() {
         "Governança leve, guardrails fortes (stub)\n- Scorecards de DX + DORA.\n- Policies automatizadas e padrões opinativos."
     );
 }
-
-
-
 
 /// Limpa recursivamente todas as pastas ".dx" a partir de um diretório raiz
 fn clean_dx_from(root: &std::path::Path) -> (usize, Vec<String>) {
@@ -742,7 +790,8 @@ fn cmd_clean(dir: Option<std::path::PathBuf>) {
     use std::env;
     use std::path::Path;
 
-    let root = dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let root =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
 
     if !root.exists() || !root.is_dir() {
         eprintln!("Diretório inválido para limpeza: {}", root.display());
@@ -813,16 +862,31 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     // Helper: list candidate subprojects under a directory following directory rules
     fn list_subprojects(root: &Path) -> Vec<PathBuf> {
         let skip = [
-            ".git", ".github", ".idea", ".vscode", ".dx", "node_modules", "target", "build", "dist", "vendor",
+            ".git",
+            ".github",
+            ".idea",
+            ".vscode",
+            ".dx",
+            "node_modules",
+            "target",
+            "build",
+            "dist",
+            "vendor",
         ];
         let mut subs = Vec::new();
         if let Ok(entries) = fs::read_dir(root) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if !path.is_dir() { continue; }
+                if !path.is_dir() {
+                    continue;
+                }
                 let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-                if name.starts_with('.') { continue; }
-                if skip.iter().any(|s| s.eq_ignore_ascii_case(&name)) { continue; }
+                if name.starts_with('.') {
+                    continue;
+                }
+                if skip.iter().any(|s| s.eq_ignore_ascii_case(&name)) {
+                    continue;
+                }
                 if is_project_root(&path) {
                     subs.push(path);
                 }
@@ -842,10 +906,14 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
                 let mut has = false;
                 for line in content.lines() {
                     let t = line.trim();
-                    if t == ".dx" || t == "/.dx" || t == ".dx/" { has = true; break; }
+                    if t == ".dx" || t == "/.dx" || t == ".dx/" {
+                        has = true;
+                        break;
+                    }
                 }
                 if !has {
-                    let mut file = match OpenOptions::new().create(true).append(true).open(&gi_path) {
+                    let mut file = match OpenOptions::new().create(true).append(true).open(&gi_path)
+                    {
                         Ok(f) => f,
                         Err(_) => return,
                     };
@@ -865,7 +933,11 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
 
     let cwd = env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf());
     let project_dir: PathBuf = if let Some(provided) = dir {
-        if provided.is_absolute() { provided } else { cwd.join(provided) }
+        if provided.is_absolute() {
+            provided
+        } else {
+            cwd.join(provided)
+        }
     } else {
         cwd.clone()
     };
@@ -883,7 +955,10 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     let multi = !subprojects.is_empty();
 
     if multi {
-        println!("Detectamos múltiplos projetos dentro de {}. Gerando relatórios por diretório...", project_dir.display());
+        println!(
+            "Detectamos múltiplos projetos dentro de {}. Gerando relatórios por diretório...",
+            project_dir.display()
+        );
         let mut count_ok = 0usize;
         for sub in &subprojects {
             // Ensure .gitignore ignores .dx in each subproject
@@ -903,19 +978,31 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
                 // Compute output path; if absolute custom path is given, avoid overwriting by falling back to default per-dir
                 let (mut out_path, used_default) = compute_output_path(sub, &report_path);
                 if out_path.is_absolute() && !used_default && report_path != "analyzer-report.md" {
-                    eprintln!("Aviso: caminho absoluto customizado informado para múltiplos relatórios. Usando padrão por diretório em {}.", sub.display());
+                    eprintln!(
+                        "Aviso: caminho absoluto customizado informado para múltiplos relatórios. Usando padrão por diretório em {}.",
+                        sub.display()
+                    );
                     out_path = sub.join(".dx").join("analyzer-report.md");
                 }
-                if let Some(parent) = out_path.parent() { let _ = fs::create_dir_all(parent); }
+                if let Some(parent) = out_path.parent() {
+                    let _ = fs::create_dir_all(parent);
+                }
                 let report = build_report(sub, &ds_config);
                 match fs::write(&out_path, report) {
-                    Ok(_) => { println!("Relatório salvo em: {}", out_path.display()); count_ok += 1; }
-                    Err(e) => eprintln!("Erro ao salvar relatório em {}: {}", out_path.display(), e),
+                    Ok(_) => {
+                        println!("Relatório salvo em: {}", out_path.display());
+                        count_ok += 1;
+                    }
+                    Err(e) => {
+                        eprintln!("Erro ao salvar relatório em {}: {}", out_path.display(), e)
+                    }
                 }
             }
         }
         if !save_report {
-            println!("\nPara salvar os relatórios, execute sem --no-save ou forneça --report-path (relativo). Cada relatório será salvo no .dx de cada projeto.");
+            println!(
+                "\nPara salvar os relatórios, execute sem --no-save ou forneça --report-path (relativo). Cada relatório será salvo no .dx de cada projeto."
+            );
         } else {
             println!("\nRelatórios gerados: {}/{}", count_ok, subprojects.len());
         }
@@ -929,7 +1016,9 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     println!("=== Dev Services ===");
     if ds_config.services.is_empty() {
         println!("Nenhuma dependência de serviços detectada.");
-        println!("Sugestão: adicione variáveis/.env ou dependências para Postgres, Redis, Kafka (Redpanda), MongoDB, Flink, etc.\n");
+        println!(
+            "Sugestão: adicione variáveis/.env ou dependências para Postgres, Redis, Kafka (Redpanda), MongoDB, Flink, etc.\n"
+        );
     } else {
         let services: Vec<_> = ds_config.services.keys().cloned().collect();
         println!("Dependências detectadas: {:?}", services);
@@ -943,14 +1032,23 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     if ds_config.services.is_empty() {
         println!("Sem badges a aplicar no momento.");
     } else {
-        println!("Badges sugeridas com base nas dependências detectadas: {}",
-                 ds_config.services.keys().cloned().collect::<Vec<_>>().join(", "));
+        println!(
+            "Badges sugeridas com base nas dependências detectadas: {}",
+            ds_config
+                .services
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
         println!("Use: dx dev-badges (ou dev-badges clean)");
     }
 
     // 3) Portal (stub)
     println!("\n=== Portal (Dev UI) ===");
-    println!("Integrações e operações do desenvolvedor em um só lugar. Em breve: automações e plugins.\nUse: dx portal");
+    println!(
+        "Integrações e operações do desenvolvedor em um só lugar. Em breve: automações e plugins.\nUse: dx portal"
+    );
 
     // 4) Testes (stub)
     println!("\n=== Testes Contínuos & Inteligentes ===");
@@ -975,7 +1073,9 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     if save_report {
         let (final_path, _used_default) = compute_output_path(&project_dir, &report_path);
         // Ensure parent exists
-        if let Some(parent) = final_path.parent() { let _ = fs::create_dir_all(parent); }
+        if let Some(parent) = final_path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
         let report = build_report(&project_dir, &ds_config);
         match fs::write(&final_path, report) {
             Ok(_) => println!("\nRelatório salvo em: {}", final_path.display()),
@@ -986,14 +1086,13 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     }
 }
 
-
 fn cmd_dev_services_restart(dir: Option<std::path::PathBuf>) {
     use std::env;
     use std::path::Path;
     use std::process::{Command, Stdio};
 
-    let project_dir = dir
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let project_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
     let compose_path = project_dir.join(".dx").join("docker-compose.yml");
 
     if !compose_path.exists() {
@@ -1004,7 +1103,10 @@ fn cmd_dev_services_restart(dir: Option<std::path::PathBuf>) {
         return;
     }
 
-    println!("Reiniciando Dev Services usando: {}", compose_path.display());
+    println!(
+        "Reiniciando Dev Services usando: {}",
+        compose_path.display()
+    );
 
     let try_docker_compose_v2 = || -> std::io::Result<std::process::ExitStatus> {
         Command::new("docker")
@@ -1031,23 +1133,34 @@ fn cmd_dev_services_restart(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v2() {
         Ok(status) if status.success() => {
-            println!("Serviços reiniciados com Docker Compose (V2). Use 'docker compose ps' para ver o status.");
+            println!(
+                "Serviços reiniciados com Docker Compose (V2). Use 'docker compose ps' para ver o status."
+            );
             return;
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)...");
+            eprintln!(
+                "Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)..."
+            );
         }
         Err(e) => {
-            eprintln!("Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...", e);
+            eprintln!(
+                "Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...",
+                e
+            );
         }
     }
 
     match try_docker_compose_v1() {
         Ok(status) if status.success() => {
-            println!("Serviços reiniciados com docker-compose. Use 'docker-compose ps' para ver o status.");
+            println!(
+                "Serviços reiniciados com docker-compose. Use 'docker-compose ps' para ver o status."
+            );
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução.");
+            eprintln!(
+                "Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução."
+            );
         }
         Err(e) => {
             eprintln!("Erro ao tentar executar 'docker-compose': {}", e);
@@ -1059,14 +1172,13 @@ fn cmd_dev_services_restart(dir: Option<std::path::PathBuf>) {
     }
 }
 
-
 fn cmd_dev_services_remove(dir: Option<std::path::PathBuf>) {
     use std::env;
     use std::path::Path;
     use std::process::{Command, Stdio};
 
-    let project_dir = dir
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
+    let project_dir =
+        dir.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| Path::new(".").to_path_buf()));
     let compose_path = project_dir.join(".dx").join("docker-compose.yml");
 
     if !compose_path.exists() {
@@ -1077,7 +1189,10 @@ fn cmd_dev_services_remove(dir: Option<std::path::PathBuf>) {
         return;
     }
 
-    println!("Removendo containers de Dev Services usando: {}", compose_path.display());
+    println!(
+        "Removendo containers de Dev Services usando: {}",
+        compose_path.display()
+    );
 
     let try_docker_compose_v2 = || -> std::io::Result<std::process::ExitStatus> {
         Command::new("docker")
@@ -1106,23 +1221,34 @@ fn cmd_dev_services_remove(dir: Option<std::path::PathBuf>) {
 
     match try_docker_compose_v2() {
         Ok(status) if status.success() => {
-            println!("Containers e volumes removidos com Docker Compose (V2). Para iniciar novamente: 'dx-cli dev-services run'.");
+            println!(
+                "Containers e volumes removidos com Docker Compose (V2). Para iniciar novamente: 'dx-cli dev-services run'."
+            );
             return;
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)...");
+            eprintln!(
+                "Falha ao executar 'docker compose'. Tentando 'docker-compose' (CLI legada)..."
+            );
         }
         Err(e) => {
-            eprintln!("Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...", e);
+            eprintln!(
+                "Não foi possível executar 'docker compose': {}. Tentando 'docker-compose' (CLI legada)...",
+                e
+            );
         }
     }
 
     match try_docker_compose_v1() {
         Ok(status) if status.success() => {
-            println!("Containers e volumes removidos com docker-compose. Para iniciar novamente: 'dx-cli dev-services run'.");
+            println!(
+                "Containers e volumes removidos com docker-compose. Para iniciar novamente: 'dx-cli dev-services run'."
+            );
         }
         Ok(_status) => {
-            eprintln!("Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução.");
+            eprintln!(
+                "Falha ao executar 'docker-compose'. Verifique se o Docker Desktop está instalado e em execução."
+            );
         }
         Err(e) => {
             eprintln!("Erro ao tentar executar 'docker-compose': {}", e);

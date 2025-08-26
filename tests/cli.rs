@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::fs;
+use std::process::Command;
 
 #[test]
 fn help_lists_subcommands() {
@@ -48,7 +48,11 @@ fn dev_config_lists_configs() {
 fn dev_config_add_update_delete() {
     let exe = env!("CARGO_BIN_EXE_dx");
     let tmp = tempfile::tempdir().expect("tempdir");
-    fs::write(tmp.path().join("Cargo.toml"), "[package]\nname=\"tmp\"\nversion=\"0.1.0\"").unwrap();
+    fs::write(
+        tmp.path().join("Cargo.toml"),
+        "[package]\nname=\"tmp\"\nversion=\"0.1.0\"",
+    )
+    .unwrap();
 
     let status = Command::new(exe)
         .args(["dev-config", "add", "foo", "bar"])

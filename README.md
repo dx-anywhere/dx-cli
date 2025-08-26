@@ -41,8 +41,11 @@ deploy.
 - [Quickstart](#quickstart)
 - [Instalação](#instalação)
 - [Uso](#uso)
-- [Dev Services](#dev-services)
 - [Analyzer (Analisador de Projeto)](#analyzer-analisador-de-projeto)
+- [Dev Services](#dev-services)
+- [Badges para README.md](#badges-para-readmemd)
+- [Dev Config](#dev-config)
+- [Dev Dependencies](#dev-dependencies)
 - [Desenvolvimento](#desenvolvimento)
 - [Roadmap](#roadmap)
 - [Como contribuir](#como-contribuir)
@@ -60,6 +63,7 @@ portal, testes, configuração, governança e telemetria.
 
 ## Mudanças Recentes
 
+- Dev-badges: refatorado com mapeamento de badges e testes abrangentes.
 - Kafka UI: porta padrão alterada para 9093 (antes 8080). O compose expõe 9093 e a aplicação define SERVER_PORT=9093 por padrão.
 - Telemetry mais leve para uso local: Prometheus com scrape_interval=30s; OpenTelemetry Collector com memory_limiter (limit_mib=200, spike_limit_mib=100).
 - Apache Flink (TaskManager): taskmanager.numberOfTaskSlots ajustado para 1 para reduzir consumo de CPU/memória em ambientes locais.
@@ -68,12 +72,14 @@ portal, testes, configuração, governança e telemetria.
 
 ## Funcionalidades
 
-- CLI em Rust com subcomandos para: dev-services, dev-test, portal, tests, config, docs,
-  governance, telemetry.
-- Detecção de dependências de serviços comuns (PostgreSQL, Kafka, Redis, MongoDB) e geração de
-  manifesto Docker Compose.
-- Suporte a testes de detecção em múltiplas linguagens por meio de projetos de exemplo.
-- Configurações prontas para RustRover (JetBrains) para acelerar o onboarding.
+ - CLI em Rust com subcomandos para: dev-services, dev-badges, dev-test, dev-config,
+   dev-dependencies, portal, tests, config, docs, governance, telemetry, analyzer.
+ - Detecção de dependências de serviços comuns (PostgreSQL, Kafka, Redis, MongoDB) e geração de
+   manifesto Docker Compose.
+ - Gestão de configurações de projeto via `dev-config`.
+ - Gerenciamento de dependências de desenvolvimento com `dev-dependencies`.
+ - Suporte a testes de detecção em múltiplas linguagens por meio de projetos de exemplo.
+ - Configurações prontas para RustRover (JetBrains) para acelerar o onboarding.
 
 Status atual: as saídas são stubs que ilustram a tese e o manifesto de Dev Services enquanto
 evoluímos para funcionalidades completas.
@@ -105,6 +111,14 @@ cargo run -- dev-services restart
 # Remover (down) os containers (não remove volumes)
 cargo run -- dev-services remove
 
+# Gerenciar configurações do projeto
+cargo run -- dev-config add foo bar
+cargo run -- dev-config
+
+# Gerenciar dependências de desenvolvimento
+cargo run -- dev-dependencies add eslint 1.0.0
+cargo run -- dev-dependencies update
+
 # Executar testes (integração CLI)
 cargo test
 ```
@@ -135,6 +149,14 @@ cargo run -- dev-services restart
 
 # Remover (down) os containers (não remove volumes)
 cargo run -- dev-services remove
+
+# Gerenciar configurações do projeto
+cargo run -- dev-config add foo bar
+cargo run -- dev-config
+
+# Gerenciar dependências de desenvolvimento
+cargo run -- dev-dependencies add eslint 1.0.0
+cargo run -- dev-dependencies update
 
 # Executar testes (integração CLI)
 cargo test
@@ -244,6 +266,8 @@ rustup default stable
 - Dev Badges (inserir badges detectadas): `dx dev-badges [--no-save] [<dir>]`
 - Dev Badges (limpar badges): `dx dev-badges clean [<dir>]`
 - Dev Test (vigia arquivos e executa testes): `dx dev-test [<dir>]`
+- Dev Config (gerenciar configs): `dx dev-config [list|add <chave> <valor>|update <chave> <valor>|delete <chave>]`
+- Dev Dependencies (gerenciar deps): `dx dev-dependencies [list|add <nome> [<versão>]|update [<nome>]|delete <nome>]`
 - Limpar pastas .dx recursivamente: `dx clean [<dir>]`
 
 Subcomandos disponíveis:
@@ -251,6 +275,8 @@ Subcomandos disponíveis:
 - dev-services (com ações: run, stop, restart, remove)
 - dev-badges (com ação: clean)
 - dev-test
+- dev-config
+- dev-dependencies
 - portal
 - tests
 - config
@@ -413,6 +439,25 @@ e colar entre os marcadores no seu README.md.
 > 💡 Dica: use `dx dev-badges` para detectar e inserir automaticamente badges das
 > tecnologias do seu projeto. O dx-cli sempre adiciona sua própria badge ao final.
 
+## Dev Config
+
+O `dx dev-config` gerencia um arquivo `.dx/config.json` com pares chave/valor específicos do projeto.
+
+```sh
+dx dev-config add api_url http://localhost:8080
+dx dev-config
+```
+
+## Dev Dependencies
+
+O `dx dev-dependencies` administra dependências de desenvolvimento para stacks como Node.js, Rust,
+Python, Go e outras.
+
+```sh
+dx dev-dependencies add eslint 1.0.0
+dx dev-dependencies update
+```
+
 ## Desenvolvimento
 
 Build e testes:
@@ -488,12 +533,13 @@ Inspirado em práticas de plataformas internas, IDPs e comunidades open source d
 ## English Summary
 
 dx-cli is a Rust CLI to improve Developer Experience across stacks. It detects common service
-dependencies and can generate Docker Compose manifests ("Dev Services"), offers a developer portal
-concept, testing aids, configuration, docs, governance and telemetry stubs.
+dependencies and can generate Docker Compose manifests ("Dev Services"), handles project settings
+with `dev-config`, manages development dependencies via `dev-dependencies`, and offers a developer
+portal concept, testing aids, configuration, docs, governance and telemetry stubs.
 
 - Build (all platforms): `cargo build` (release: `cargo build --release`)
 - Run: `dx --help` or `cargo run -- --help`
-- Subcommands: init; dev-services (actions: run, stop, restart, remove); dev-badges (action: clean); dev-test; portal; tests; config; docs; governance; analyzer (alias: doctor)
+- Subcommands: init; dev-services (actions: run, stop, restart, remove); dev-badges (action: clean); dev-test; dev-config; dev-dependencies; portal; tests; config; docs; governance; analyzer (alias: doctor)
 - Dev Services: scans Cargo.toml and .env to propose services and outputs docker-compose.yml (print
   or save). Then you can: `dx dev-services run|stop|restart|remove`.
 - Continuous tests: `dx dev-test` watches for changes and reruns unit tests (Rust, Node.js, Python, Go or Java).

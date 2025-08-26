@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2025 The dx-cli Contributors
 
-use crate::dev_services::{DockerComposeConfig, DockerService};
 use crate::dev_dependencies;
+use crate::dev_services::{DockerComposeConfig, DockerService};
 use std::path::Path;
 
 fn linkify_image(image: &str) -> String {
@@ -131,11 +131,21 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
             if deps.is_empty() {
                 report.push_str("Nenhuma dependência de desenvolvimento encontrada.\n\n");
             } else {
-                report.push_str("| Dependência | Versão Atual | Última Versão | Comando de Atualização |\n");
-                report.push_str("|-------------|--------------|---------------|------------------------|\n");
+                report.push_str(
+                    "| Dependência | Versão Atual | Última Versão | Comando de Atualização |\n",
+                );
+                report.push_str(
+                    "|-------------|--------------|---------------|------------------------|\n",
+                );
                 for d in deps {
                     let latest = d.latest_version.clone().unwrap_or_else(|| "-".to_string());
-                    report.push_str(&format!("| {} | {} | {} | `{}` |\n", d.link(), d.current_version, latest, d.update_command));
+                    report.push_str(&format!(
+                        "| {} | {} | {} | `{}` |\n",
+                        d.link(),
+                        d.current_version,
+                        latest,
+                        d.update_command
+                    ));
                 }
                 report.push_str("\nPara atualizar todas: `dx dev-dependencies update`\n\n");
             }

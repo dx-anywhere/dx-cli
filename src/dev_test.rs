@@ -9,7 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
+use notify::{EventKind, RecursiveMode, Watcher, recommended_watcher};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Stack {
@@ -146,4 +146,3 @@ pub fn watch_and_test(dir: Option<PathBuf>) {
         }
     }
 }
-

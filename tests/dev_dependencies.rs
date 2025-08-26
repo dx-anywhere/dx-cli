@@ -19,7 +19,11 @@ fn dev_dependencies_list_node() {
 fn dev_dependencies_add_update_delete_node() {
     let exe = env!("CARGO_BIN_EXE_dx");
     let tmp = tempfile::tempdir().expect("tempdir");
-    fs::write(tmp.path().join("package.json"), "{\n  \"devDependencies\": {}\n}\n").unwrap();
+    fs::write(
+        tmp.path().join("package.json"),
+        "{\n  \"devDependencies\": {}\n}\n",
+    )
+    .unwrap();
 
     let status = Command::new(exe)
         .args(["dev-dependencies", "add", "eslint", "1.0.0"])
