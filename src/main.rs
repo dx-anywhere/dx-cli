@@ -39,6 +39,13 @@ enum Commands {
         /// Diretório alvo (padrão: diretório atual). Para `clean`, também pode ser informado após o subcomando.
         dir: Option<std::path::PathBuf>,
     },
+    /// Gerencia dependências do projeto
+    DevDependencies {
+        #[command(subcommand)]
+        action: DevDependenciesAction,
+        /// Diretório alvo (padrão: diretório atual)
+        dir: Option<std::path::PathBuf>,
+    },
     /// Executa testes unitários continuamente ao detectar mudanças nos arquivos
     DevTest {
         /// Diretório raiz do projeto a ser monitorado (opcional; padrão: diretório atual)
@@ -107,8 +114,21 @@ enum DevServicesAction {
     },
 }
 
+#[derive(Subcommand)]
+enum DevDependenciesAction {
+    /// Lista dependências do projeto
+    List,
+    /// Adiciona uma dependência
+    Add { name: String },
+    /// Atualiza uma dependência
+    Update { name: String },
+    /// Remove uma dependência
+    Remove { name: String },
+}
+
 
 mod dev_badges;
+mod dev_dependencies;
 mod dev_test;
 
 fn main() {
@@ -129,6 +149,12 @@ fn main() {
                 None => cmd_dev_badges(!no_save, dir),
             }
         }
+        Commands::DevDependencies { action, dir } => match action {
+            DevDependenciesAction::List => dev_dependencies::list(dir),
+            DevDependenciesAction::Add { name } => dev_dependencies::add(dir, &name),
+            DevDependenciesAction::Update { name } => dev_dependencies::update(dir, &name),
+            DevDependenciesAction::Remove { name } => dev_dependencies::remove(dir, &name),
+        },
         Commands::DevTest { dir } => dev_test::watch_and_test(dir),
         Commands::Portal => cmd_portal(),
         Commands::Tests => cmd_tests(),
@@ -812,13 +838,25 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
             ensure_gitignore_has_dx(sub);
             println!("\n--- Projeto: {} ---", sub.display());
             let ds_config = dev_services::detect_dependencies(sub);
+            let deps = dev_dependencies::gather_with_latest(sub);
 
-            // Print a brief console summary per subproject
+            // Print dependencies
+            if deps.is_empty() {
+                println!("Nenhuma dependência de projeto detectada.");
+            } else {
+                println!("Dependências do projeto:");
+                for d in &deps {
+                    let latest = d.latest_version.clone().unwrap_or_else(|| "?".into());
+                    println!("- {} (atual: {} / última: {})", d.name, d.current_version, latest);
+                }
+            }
+
+            // Print a brief console summary for dev services
             if ds_config.services.is_empty() {
                 println!("Nenhuma dependência de serviços detectada.");
             } else {
                 let services: Vec<_> = ds_config.services.keys().cloned().collect();
-                println!("Dependências detectadas: {:?}", services);
+                println!("Serviços detectados: {:?}", services);
             }
 
             if save_report {
@@ -847,8 +885,18 @@ fn cmd_analyzer(save_report: bool, report_path: String, dir: Option<std::path::P
     // Single-project behavior (existing flow)
     // Ensure .gitignore ignores .dx in this project
     ensure_gitignore_has_dx(&project_dir);
+    let deps = dev_dependencies::gather_with_latest(&project_dir);
     let ds_config = dev_services::detect_dependencies(&project_dir);
-    println!("=== Dev Services ===");
+    println!("=== Dependências ===");
+    if deps.is_empty() {
+        println!("Nenhuma dependência de projeto detectada.");
+    } else {
+        for d in &deps {
+            let latest = d.latest_version.clone().unwrap_or_else(|| "?".into());
+            println!("- {} (atual: {} / última: {})", d.name, d.current_version, latest);
+        }
+    }
+    println!("\n=== Dev Services ===");
     if ds_config.services.is_empty() {
         println!("Nenhuma dependência de serviços detectada.");
         println!("Sugestão: adicione variáveis/.env ou dependências para Postgres, Redis, Kafka (Redpanda), MongoDB, Flink, etc.\n");
