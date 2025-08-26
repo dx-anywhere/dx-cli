@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2025 The dx-cli Contributors
 
+use crate::dev_dependencies;
 use crate::dev_services::{DockerComposeConfig, DockerService};
 use std::path::Path;
 
@@ -52,6 +53,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     // Table of contents
     report.push_str("## Tabela de Conteúdos\n");
     report.push_str("- [Resumo](#resumo)\n");
+    report.push_str("- [Dependências](#dependências)\n");
     report.push_str("- [Dev Services](#dev-services)\n");
     report.push_str("- [Badges para README.md](#badges-para-readmemd)\n");
     report.push_str("- [Próximas Ações](#próximas-ações)\n");
@@ -68,6 +70,21 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
         let mut names: Vec<_> = ds_config.services.keys().cloned().collect();
         names.sort();
         report.push_str(&format!("- 🧩 Lista: {}\n\n", names.join(", ")));
+    }
+
+    // Dependencies section
+    report.push_str("## Dependências\n\n");
+    let deps = dev_dependencies::gather_with_latest(project_dir);
+    if deps.is_empty() {
+        report.push_str("Nenhuma dependência encontrada.\n\n");
+    } else {
+        report.push_str("| Dependência | Versão Atual | Última Versão |\n");
+        report.push_str("|-------------|--------------|---------------|\n");
+        for d in deps {
+            let latest = d.latest_version.unwrap_or_else(|| "?".into());
+            report.push_str(&format!("| {} | {} | {} |\n", d.name, d.current_version, latest));
+        }
+        report.push_str("\n");
     }
 
     // Dev Services section
