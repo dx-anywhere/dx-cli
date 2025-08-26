@@ -52,6 +52,14 @@ enum Commands {
         /// Diretório raiz do projeto (opcional; padrão: diretório atual)
         dir: Option<std::path::PathBuf>,
     },
+    /// Gerencia dependências de desenvolvimento do projeto
+    DevDependencies {
+        /// Ação opcional (ex.: `add`). Se omitida, lista dependências.
+        #[command(subcommand)]
+        action: Option<DevDependenciesAction>,
+        /// Diretório raiz do projeto (opcional; padrão: diretório atual)
+        dir: Option<std::path::PathBuf>,
+    },
     /// Portal/plug-in do desenvolvedor (Dev UI)
     Portal,
     /// Testes contínuos e inteligentes (geração/execução)
@@ -140,10 +148,34 @@ enum DevConfigAction {
     },
 }
 
+#[derive(Subcommand)]
+enum DevDependenciesAction {
+    /// Lista todas as dependências de desenvolvimento
+    List,
+    /// Adiciona uma nova dependência de desenvolvimento
+    Add {
+        /// Nome da dependência
+        name: String,
+        /// Versão (opcional)
+        version: Option<String>,
+    },
+    /// Atualiza uma dependência específica ou todas se omitido
+    Update {
+        /// Nome da dependência (opcional)
+        name: Option<String>,
+    },
+    /// Remove uma dependência de desenvolvimento
+    Delete {
+        /// Nome da dependência
+        name: String,
+    },
+}
+
 
 mod dev_badges;
 mod dev_config;
 mod dev_test;
+mod dev_dependencies;
 
 fn main() {
     let cli = Cli::parse();
@@ -169,6 +201,12 @@ fn main() {
             DevConfigAction::Add { key, value } => dev_config::add(dir, key, value),
             DevConfigAction::Update { key, value } => dev_config::update(dir, key, value),
             DevConfigAction::Delete { key } => dev_config::delete(dir, key),
+        },
+        Commands::DevDependencies { action, dir } => match action.unwrap_or(DevDependenciesAction::List) {
+            DevDependenciesAction::List => dev_dependencies::list(dir),
+            DevDependenciesAction::Add { name, version } => dev_dependencies::add(dir, name, version),
+            DevDependenciesAction::Update { name } => dev_dependencies::update(dir, name),
+            DevDependenciesAction::Delete { name } => dev_dependencies::delete(dir, name),
         },
         Commands::Portal => cmd_portal(),
         Commands::Tests => cmd_tests(),

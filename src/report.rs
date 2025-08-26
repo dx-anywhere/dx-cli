@@ -2,6 +2,7 @@
 // Copyright (c) 2025 The dx-cli Contributors
 
 use crate::dev_services::{DockerComposeConfig, DockerService};
+use crate::dev_dependencies;
 use std::path::Path;
 
 fn linkify_image(image: &str) -> String {
@@ -53,6 +54,7 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
     report.push_str("## Tabela de Conteúdos\n");
     report.push_str("- [Resumo](#resumo)\n");
     report.push_str("- [Dev Services](#dev-services)\n");
+    report.push_str("- [Dependências de Desenvolvimento](#dependências-de-desenvolvimento)\n");
     report.push_str("- [Badges para README.md](#badges-para-readmemd)\n");
     report.push_str("- [Próximas Ações](#próximas-ações)\n");
     report.push_str("- [Outras Capabilities](#outras-capabilities)\n\n");
@@ -120,6 +122,27 @@ pub fn build_analyzer_report(project_dir: &Path, ds_config: &DockerComposeConfig
 
         // Tip callout
         report.push_str("> 💡 Dica: ajuste portas/volumes conforme seu ambiente. Com Docker Compose v2, use `docker compose` em vez de `docker-compose`.\n\n");
+    }
+
+    // Dev dependencies section
+    report.push_str("## Dependências de Desenvolvimento\n\n");
+    match dev_dependencies::get_dependencies(project_dir) {
+        Ok(deps) => {
+            if deps.is_empty() {
+                report.push_str("Nenhuma dependência de desenvolvimento encontrada.\n\n");
+            } else {
+                report.push_str("| Dependência | Versão Atual | Última Versão | Comando de Atualização |\n");
+                report.push_str("|-------------|--------------|---------------|------------------------|\n");
+                for d in deps {
+                    let latest = d.latest_version.clone().unwrap_or_else(|| "-".to_string());
+                    report.push_str(&format!("| {} | {} | {} | `{}` |\n", d.link(), d.current_version, latest, d.update_command));
+                }
+                report.push_str("\nPara atualizar todas: `dx dev-dependencies update`\n\n");
+            }
+        }
+        Err(e) => {
+            report.push_str(&format!("Erro ao obter dependências: {e}\n\n"));
+        }
     }
 
     // Badges section for README injection
