@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2025 The dx-cli Contributors
 
-use crate::dev_services::{create_docker_compose_file, DockerComposeConfig, DockerService};
+use crate::dev_services::{DockerComposeConfig, DockerService, create_docker_compose_file};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -54,7 +54,10 @@ pub fn apply(project_dir: &Path) -> std::io::Result<TelemetryResult> {
     // Detect language/framework and add a simple dashboard
     let (lang, framework) = detect_language_and_framework(project_dir);
     let dash = simple_dashboard_json(&lang, framework.as_deref());
-    fs::write(grafana_dash_dir.join(format!("{}-overview.json", lang.to_lowercase())), dash)?;
+    fs::write(
+        grafana_dash_dir.join(format!("{}-overview.json", lang.to_lowercase())),
+        dash,
+    )?;
 
     // Build a docker-compose for telemetry and merge into the main dev-services compose
     // Start from detected dev services (if any)
@@ -111,7 +114,10 @@ fn build_telemetry_compose() -> DockerComposeConfig {
             env: HashMap::new(),
             ports: vec![9090],
             volumes: vec![
-                format!("{}:/etc/prometheus/prometheus.yml", rel_bind("telemetry/prometheus/prometheus.yml")),
+                format!(
+                    "{}:/etc/prometheus/prometheus.yml",
+                    rel_bind("telemetry/prometheus/prometheus.yml")
+                ),
                 "prom-data:/prometheus".to_string(),
             ],
             command: None,
@@ -126,14 +132,26 @@ fn build_telemetry_compose() -> DockerComposeConfig {
             env: {
                 let mut e = HashMap::new();
                 e.insert("GF_AUTH_ANONYMOUS_ENABLED".to_string(), "true".to_string());
-                e.insert("GF_AUTH_ANONYMOUS_ORG_ROLE".to_string(), "Admin".to_string());
+                e.insert(
+                    "GF_AUTH_ANONYMOUS_ORG_ROLE".to_string(),
+                    "Admin".to_string(),
+                );
                 e
             },
             ports: vec![3000],
             volumes: vec![
-                format!("{}:/etc/grafana/provisioning/datasources", rel_bind("telemetry/grafana/provisioning/datasources")),
-                format!("{}:/etc/grafana/provisioning/dashboards", rel_bind("telemetry/grafana/provisioning/dashboards")),
-                format!("{}:/var/lib/grafana/dashboards", rel_bind("telemetry/grafana/dashboards")),
+                format!(
+                    "{}:/etc/grafana/provisioning/datasources",
+                    rel_bind("telemetry/grafana/provisioning/datasources")
+                ),
+                format!(
+                    "{}:/etc/grafana/provisioning/dashboards",
+                    rel_bind("telemetry/grafana/provisioning/dashboards")
+                ),
+                format!(
+                    "{}:/var/lib/grafana/dashboards",
+                    rel_bind("telemetry/grafana/dashboards")
+                ),
                 "grafana-storage:/var/lib/grafana".to_string(),
             ],
             command: None,
@@ -314,15 +332,25 @@ fn detect_language_and_framework(project_dir: &Path) -> (String, Option<String>)
         return ("JavaScript".into(), fw);
     }
     if p.join("pyproject.toml").exists() || p.join("requirements.txt").exists() {
-        let fw = if p.join("manage.py").exists() { Some("Django".to_string()) } else { None };
+        let fw = if p.join("manage.py").exists() {
+            Some("Django".to_string())
+        } else {
+            None
+        };
         return ("Python".into(), fw);
     }
     if p.join("pom.xml").exists() || p.join("build.gradle").exists() {
         return ("Java".into(), None);
     }
-    if p.join("Gemfile").exists() { return ("Ruby".into(), None); }
-    if p.join("go.mod").exists() { return ("Go".into(), None); }
-    if p.join("composer.json").exists() { return ("PHP".into(), None); }
+    if p.join("Gemfile").exists() {
+        return ("Ruby".into(), None);
+    }
+    if p.join("go.mod").exists() {
+        return ("Go".into(), None);
+    }
+    if p.join("composer.json").exists() {
+        return ("PHP".into(), None);
+    }
     ("General".into(), None)
 }
 

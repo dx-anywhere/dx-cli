@@ -8,45 +8,46 @@ use crate::dev_services;
 const START_MARKER: &str = "<!-- dx-cli:badges:start -->";
 const END_MARKER: &str = "<!-- dx-cli:badges:end -->";
 
+const BADGE_MAP: &[(&[&str], &str)] = &[
+    (
+        &["postgres", "postgresql"],
+        "[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)",
+    ),
+    (
+        &["mysql", "mariadb"],
+        "[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)",
+    ),
+    (
+        &["mongodb"],
+        "[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)",
+    ),
+    (
+        &["redis"],
+        "[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)",
+    ),
+    (
+        &["kafka"],
+        "[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)",
+    ),
+    (
+        &["flink", "jobmanager", "taskmanager"],
+        "[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)",
+    ),
+];
+
 /// Generate a Markdown line with badges for the given services
 pub fn generate_badges_markdown(services: &[String]) -> String {
     use std::collections::HashSet;
 
-    // Build the same badges as the Analyzer report
     let mut badges: HashSet<&str> = HashSet::new();
 
-    for s in services {
-        let kl = s.to_lowercase();
-        match kl.as_str() {
-            // Databases
-            "postgres" | "postgresql" => {
-                badges.insert("[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Dev_Service-blue?logo=postgresql)](#)");
+    for svc in services {
+        let svc = svc.to_lowercase();
+        for (names, badge) in BADGE_MAP.iter() {
+            if names.iter().any(|name| *name == svc) {
+                badges.insert(*badge);
+                break;
             }
-            "mysql" | "mariadb" => {
-                badges.insert(
-                    "[![MySQL](https://img.shields.io/badge/MySQL-Dev_Service-blue?logo=mysql)](#)",
-                );
-            }
-            "mongodb" => {
-                badges.insert("[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)");
-            }
-            // Cache
-            "redis" => {
-                badges.insert(
-                    "[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)",
-                );
-            }
-            // Streaming (Kafka API)
-            "kafka" => {
-                badges.insert("[![Kafka](https://img.shields.io/badge/Kafka-Dev_Service-black?logo=apachekafka)](#)");
-            }
-            // Data processing (Flink detected by jobmanager/taskmanager too)
-            "flink" | "jobmanager" | "taskmanager" => {
-                badges.insert("[![Apache Flink](https://img.shields.io/badge/Flink-Dev_Service-orange?logo=apacheflink)](#)");
-            }
-            // Skip tools like kafka-ui
-            "kafka-ui" => {}
-            _ => {}
         }
     }
 
@@ -191,18 +192,18 @@ pub fn remove_badges_in_readme(project_dir: &Path) -> std::io::Result<(PathBuf, 
 
 fn collapse_blank_lines(s: &str) -> String {
     let mut prev_blank = false;
-    let mut out = String::new();
-    for line in s.lines() {
-        let blank = line.trim().is_empty();
-        if blank && prev_blank {
-            // skip extra blank line
-            continue;
-        }
-        out.push_str(line);
-        out.push('\n');
-        prev_blank = blank;
-    }
-    out
+    s.lines()
+        .filter(|line| {
+            let blank = line.trim().is_empty();
+            let keep = !(blank && prev_blank);
+            prev_blank = blank;
+            keep
+        })
+        .fold(String::new(), |mut acc, line| {
+            acc.push_str(line);
+            acc.push('\n');
+            acc
+        })
 }
 
 /// Orchestrates cleaning for a directory
@@ -214,5 +215,82 @@ pub fn process_clean_directory(project_dir: &Path) {
             }
         }
         Err(e) => eprintln!("Erro ao limpar badges em {}: {}", project_dir.display(), e),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn collapse_blank_lines_removes_runs() {
+        let input = "a\n\n\n\n b\n";
+        let expected = "a\n\n b\n";
+        assert_eq!(collapse_blank_lines(input), expected);
+    }
+
+    #[test]
+    fn generate_badges_deduplicates_and_appends_brand() {
+        let services = vec!["Postgres".into(), "postgresql".into(), "kafka-ui".into()];
+        let line = generate_badges_markdown(&services);
+        assert!(line.contains("PostgreSQL"));
+        assert!(!line.contains("kafka-ui"));
+        assert!(line.ends_with("dx-logo.svg)](#)"));
+    }
+
+    #[test]
+    fn upsert_updates_and_remove_cleans() {
+        let tmp = tempdir().unwrap();
+        let dir = tmp.path();
+        let first = "[![Redis](https://img.shields.io/badge/Redis-Dev_Service-red?logo=redis)](#)";
+        let path = upsert_badges_in_readme(dir, first).unwrap();
+        let second =
+            "[![MongoDB](https://img.shields.io/badge/MongoDB-Dev_Service-green?logo=mongodb)](#)";
+        upsert_badges_in_readme(dir, second).unwrap();
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.contains(second));
+        assert!(!content.contains(first));
+
+        let (_p, removed) = remove_badges_in_readme(dir).unwrap();
+        assert!(removed);
+        let content = fs::read_to_string(path).unwrap();
+        assert!(!content.contains(START_MARKER));
+    }
+
+    #[test]
+    fn remove_handles_missing_cases() {
+        let tmp = tempdir().unwrap();
+        let dir = tmp.path();
+
+        // Missing README
+        let (_, removed) = remove_badges_in_readme(dir).unwrap();
+        assert!(!removed);
+
+        // Start without end marker
+        fs::write(dir.join("README.md"), format!("{}\n", START_MARKER)).unwrap();
+        let (_, removed) = remove_badges_in_readme(dir).unwrap();
+        assert!(!removed);
+    }
+
+    #[test]
+    fn process_directory_creates_and_cleans_readme() {
+        let tmp = tempdir().unwrap();
+        let dir = tmp.path();
+        fs::write(dir.join(".env"), "postgres").unwrap();
+
+        // Without save
+        process_directory(false, dir);
+        assert!(!dir.join("README.md").exists());
+
+        // With save
+        process_directory(true, dir);
+        let readme = dir.join("README.md");
+        assert!(readme.exists());
+
+        process_clean_directory(dir);
+        let content = fs::read_to_string(readme).unwrap();
+        assert!(!content.contains(START_MARKER));
     }
 }

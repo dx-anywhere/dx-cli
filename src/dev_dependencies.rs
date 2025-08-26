@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use toml_edit::{value, Document};
+use toml_edit::{Document, value};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Stack {
@@ -282,7 +282,11 @@ fn list_rust(dir: &Path) {
     let doc = load_cargo_toml(&path);
     if let Some(table) = doc.get("dev-dependencies").and_then(|t| t.as_table()) {
         for (k, v) in table.iter() {
-            println!("- {} = {}", k, v.as_value().map(|v| v.to_string()).unwrap_or_default());
+            println!(
+                "- {} = {}",
+                k,
+                v.as_value().map(|v| v.to_string()).unwrap_or_default()
+            );
         }
     } else {
         println!("Nenhuma dependência encontrada.");
@@ -318,7 +322,10 @@ fn fetch_latest_crate(name: &str) -> Option<String> {
 fn update_rust(dir: &Path, name: Option<String>) {
     let path = cargo_toml(dir);
     let mut doc = load_cargo_toml(&path);
-    if let Some(table) = doc.get_mut("dev-dependencies").and_then(|t| t.as_table_mut()) {
+    if let Some(table) = doc
+        .get_mut("dev-dependencies")
+        .and_then(|t| t.as_table_mut())
+    {
         if let Some(n) = name {
             if let Some(latest) = fetch_latest_crate(&n) {
                 table.insert(&n, value(latest));
@@ -339,7 +346,10 @@ fn update_rust(dir: &Path, name: Option<String>) {
 fn delete_rust(dir: &Path, name: String) {
     let path = cargo_toml(dir);
     let mut doc = load_cargo_toml(&path);
-    if let Some(table) = doc.get_mut("dev-dependencies").and_then(|t| t.as_table_mut()) {
+    if let Some(table) = doc
+        .get_mut("dev-dependencies")
+        .and_then(|t| t.as_table_mut())
+    {
         table.remove(&name);
         println!("Dependência '{name}' removida.");
     }
@@ -358,7 +368,11 @@ fn get_rust_dependencies(dir: &Path) -> Vec<DependencyInfo> {
                 name: k.to_string(),
                 current_version: ver.clone(),
                 latest_version: latest.clone(),
-                update_command: format!("cargo update -p {} --precise {}", k, latest.clone().unwrap_or_default()),
+                update_command: format!(
+                    "cargo update -p {} --precise {}",
+                    k,
+                    latest.clone().unwrap_or_default()
+                ),
                 url: format!("https://crates.io/crates/{}", k),
             });
         }
@@ -603,7 +617,8 @@ fn parse_maven_deps(data: &str) -> Vec<(String, String, String)> {
             rest = &rest[end + "</dependency>".len()..];
             if block.contains("<scope>test</scope>") {
                 let group = extract_between(block, "<groupId>", "</groupId>").unwrap_or_default();
-                let artifact = extract_between(block, "<artifactId>", "</artifactId>").unwrap_or_default();
+                let artifact =
+                    extract_between(block, "<artifactId>", "</artifactId>").unwrap_or_default();
                 let version = extract_between(block, "<version>", "</version>").unwrap_or_default();
                 deps.push((group.to_string(), artifact.to_string(), version.to_string()));
             }
@@ -638,7 +653,10 @@ fn list_maven(dir: &Path) {
 
 fn fetch_latest_maven(group: &str, artifact: &str) -> Option<String> {
     let path = group.replace('.', "/");
-    let url = format!("https://repo1.maven.org/maven2/{}/{}/maven-metadata.xml", path, artifact);
+    let url = format!(
+        "https://repo1.maven.org/maven2/{}/{}/maven-metadata.xml",
+        path, artifact
+    );
     let text = reqwest::blocking::get(url).ok()?.text().ok()?;
     extract_between(&text, "<latest>", "</latest>")
         .or_else(|| extract_between(&text, "<release>", "</release>"))
@@ -820,7 +838,13 @@ fn add_php(dir: &Path, name: String, version: Option<String>) {
 fn fetch_latest_packagist(name: &str) -> Option<String> {
     let url = format!("https://repo.packagist.org/p2/{}.json", name);
     let v = reqwest::blocking::get(url).ok()?.json::<Value>().ok()?;
-    v.get("packages")?.as_object()?.get(name)?.get(0)?.get("version")?.as_str().map(|s| s.trim_start_matches('v').to_string())
+    v.get("packages")?
+        .as_object()?
+        .get(name)?
+        .get(0)?
+        .get("version")?
+        .as_str()
+        .map(|s| s.trim_start_matches('v').to_string())
 }
 
 fn update_php(dir: &Path, name: Option<String>) {

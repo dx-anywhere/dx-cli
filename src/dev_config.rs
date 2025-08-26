@@ -4,8 +4,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fmt,
-    fs,
+    fmt, fs,
     path::{Path, PathBuf},
 };
 
@@ -155,4 +154,3 @@ pub fn delete(dir: Option<PathBuf>, key: String) {
         println!("Configuração '{key}' não existe.");
     }
 }
-
